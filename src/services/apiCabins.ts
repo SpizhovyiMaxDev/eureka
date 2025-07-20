@@ -12,6 +12,20 @@ export async function getCabins(): Promise<Cabin[]> {
   return (data ?? []) as Cabin[];
 }
 
+export async function createCabin(newCabin: Cabin): Promise<Cabin> {
+  const { data, error } = await supabase
+    .from("cabins")
+    .insert([newCabin])
+    .select();
+
+  if (error) {
+    console.log(error);
+    throw new Error("Cabin could not be created");
+  }
+
+  return (data?.[0] ?? []) as Cabin;
+}
+
 export async function deleteCabin(id: number): Promise<void> {
   const { error } = await supabase.from("cabins").delete().eq("id", id);
 
