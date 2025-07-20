@@ -1,4 +1,4 @@
-export type Bookings = {
+export type Booking = {
   cabinId: number;
   guestId: number;
   createdAt: string;
