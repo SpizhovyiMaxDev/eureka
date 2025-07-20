@@ -1,7 +1,8 @@
 export type Booking = {
+  id?: number;
+  createdAt?: string;
   cabinId: number;
   guestId: number;
-  createdAt: string;
   startDate: string;
   endDate: string;
   numGuests: number;
