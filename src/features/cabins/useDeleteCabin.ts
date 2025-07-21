@@ -2,12 +2,12 @@ import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { deleteCabin } from "../../services/apiCabins";
 import toast from "react-hot-toast";
 
-interface useDeleteCabinProps {
+interface useDeleteCabinReturnTypes {
   isDeleting: boolean;
   deleteMutation: (id: number) => void;
 }
 
-function useDeleteCabin(): useDeleteCabinProps {
+export function useDeleteCabin(): useDeleteCabinReturnTypes {
   const queryClient = useQueryClient();
   const { isPending: isDeleting, mutate: deleteMutation } = useMutation({
     mutationFn: (id: number) => deleteCabin(id),
@@ -22,5 +22,3 @@ function useDeleteCabin(): useDeleteCabinProps {
 
   return { isDeleting, deleteMutation };
 }
-
-export default useDeleteCabin;

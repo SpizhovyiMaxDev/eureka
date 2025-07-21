@@ -3,7 +3,7 @@ import { createCabin } from "../../services/apiCabins";
 import toast from "react-hot-toast";
 import { NewCabin } from "../../types/cabin";
 
-interface UseCreateCabinProps {
+interface UseCreateCabinretuenTypes {
   isCreating: boolean;
   createMutation: (
     cabin: NewCabin,
@@ -11,7 +11,7 @@ interface UseCreateCabinProps {
   ) => void;
 }
 
-export function useCreateCabin(): UseCreateCabinProps {
+export function useCreateCabin(): UseCreateCabinretuenTypes {
   const queryClient = useQueryClient();
   const { isPending: isCreating, mutate: createMutation } = useMutation({
     mutationFn: createCabin,

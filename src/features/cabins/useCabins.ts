@@ -2,7 +2,7 @@ import { useQuery } from "@tanstack/react-query";
 import { getCabins } from "../../services/apiCabins";
 import { Cabin } from "../../types/cabin";
 
-function useCabins() {
+export function useCabins() {
   const {
     data: cabins,
     error,
@@ -14,5 +14,3 @@ function useCabins() {
 
   return { cabins, error, isFetching };
 }
-
-export default useCabins;

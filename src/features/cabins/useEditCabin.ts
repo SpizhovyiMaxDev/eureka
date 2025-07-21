@@ -3,7 +3,7 @@ import { editCabin } from "../../services/apiCabins";
 import { EditCabin } from "../../types/cabin";
 import toast from "react-hot-toast";
 
-interface useEditCabinProps {
+interface useEditCabinReturnTypes {
   isEditing: boolean;
   editMutation: (
     cabin: EditCabin,
@@ -11,7 +11,7 @@ interface useEditCabinProps {
   ) => void;
 }
 
-function useEditCabin(): useEditCabinProps {
+export function useEditCabin(): useEditCabinReturnTypes {
   const queryClient = useQueryClient();
 
   const { mutate: editMutation, isPending: isEditing } = useMutation({
@@ -25,5 +25,3 @@ function useEditCabin(): useEditCabinProps {
 
   return { editMutation, isEditing };
 }
-
-export default useEditCabin;
