@@ -1,8 +1,5 @@
 import { useForm } from "react-hook-form";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { createCabin } from "../../services/apiCabins";
-import { Cabin } from "../../types/cabin";
-import toast from "react-hot-toast";
+import { Cabin, EditCabin, NewCabin, SubmitCabin } from "../../types/cabin";
 
 import Input from "../../ui/Input";
 import Form from "../../ui/Form";
@@ -10,31 +7,46 @@ import Button from "../../ui/Button";
 import FileInput from "../../ui/FileInput";
 import Textarea from "../../ui/Textarea";
 import FormRow from "../../ui/FormRow";
+import { useCreateCabin } from "./useCreateCabin";
+import useEditCabin from "./useEditCabin";
 
-function CreateCabinForm() {
+type CreateCabinFormProps = {
+  cabin?: Cabin;
+};
+
+function CreateCabinForm({ cabin }: CreateCabinFormProps) {
+  const isEditSession: boolean = Boolean(cabin?.id);
+
   const {
     register,
     handleSubmit,
     reset: resetFormState,
     getValues,
-    formState,
-  } = useForm<Cabin>();
-  const { errors } = formState;
-  const queryClient = useQueryClient();
-  const { mutate, isPending: isCreating } = useMutation<Cabin, Error, Cabin>({
-    mutationFn: createCabin,
-    onSuccess() {
-      toast.success("New Cabin successfully created");
-      queryClient.invalidateQueries({ queryKey: ["cabins"] });
-      resetFormState();
-    },
-    onError(err) {
-      toast.success(err.message);
-    },
-  });
+    formState: { errors },
+  } = useForm<SubmitCabin>();
 
-  function onSubmit(data: Cabin) {
-    mutate(data);
+  const { createMutation, isCreating } = useCreateCabin();
+  const { editMutation, isEditing } = useEditCabin();
+  const isProcessing: boolean = isEditing || isCreating;
+
+  function onSubmit(data: SubmitCabin) {
+    const image: File | string =
+      typeof data.image === "string" ? data.image : data.image[0];
+
+    if (isEditSession && cabin?.id) {
+      const editCabinData: EditCabin = {
+        ...data,
+        image,
+        id: cabin.id,
+      };
+      editMutation(editCabinData, { onSuccess: resetFormState });
+    } else {
+      const newCabinData: NewCabin = {
+        ...data,
+        image,
+      };
+      createMutation(newCabinData, { onSuccess: resetFormState });
+    }
   }
 
   const nameField = register("name", { required: "This field is required" });
@@ -48,7 +60,8 @@ function CreateCabinForm() {
         <Input
           type="text"
           id="name"
-          disabled={isCreating}
+          disabled={isProcessing}
+          defaultValue={cabin?.name ?? ""}
           placeholder="Name..."
           {...nameField}
           onBlur={(e) => {
@@ -63,8 +76,8 @@ function CreateCabinForm() {
         <Input
           type="number"
           id="maxCapacity"
-          disabled={isCreating}
-          defaultValue={1}
+          disabled={isProcessing}
+          defaultValue={cabin?.maxCapacity ?? 1}
           {...register("maxCapacity", {
             required: "This field is required",
             valueAsNumber: true,
@@ -80,8 +93,8 @@ function CreateCabinForm() {
         <Input
           type="number"
           id="regularPrice"
-          defaultValue={100}
-          disabled={isCreating}
+          defaultValue={cabin?.regularPrice ?? 100}
+          disabled={isProcessing}
           {...register("regularPrice", {
             required: "This field is required",
             valueAsNumber: true,
@@ -97,8 +110,8 @@ function CreateCabinForm() {
         <Input
           type="number"
           id="discount"
-          defaultValue={0}
-          disabled={isCreating}
+          defaultValue={cabin?.discount ?? 0}
+          disabled={isProcessing}
           {...register("discount", {
             required: "This field is required",
             valueAsNumber: true,
@@ -119,8 +132,9 @@ function CreateCabinForm() {
         <Textarea
           id="description"
           placeholder="Put your description here"
-          disabled={isCreating}
+          disabled={isProcessing}
           {...descriptionField}
+          defaultValue={cabin?.description ?? ""}
           onBlur={(e) => {
             descriptionField.onBlur(e);
             e.target.placeholder = "Put your description here";
@@ -130,14 +144,22 @@ function CreateCabinForm() {
       </FormRow>
 
       <FormRow label="Cabin photo">
-        <FileInput id="image" accept="image/*" />
+        <FileInput
+          id="image"
+          accept="image/*"
+          {...register("image", {
+            required: "This field is required",
+          })}
+        />
       </FormRow>
 
       <FormRow>
         <Button variation="secondary" type="reset">
           Cancel
         </Button>
-        <Button disabled={isCreating}>Edit cabin</Button>
+        <Button disabled={isProcessing}>
+          {isEditSession ? "Edit" : "Create"} cabin
+        </Button>
       </FormRow>
     </Form>
   );
