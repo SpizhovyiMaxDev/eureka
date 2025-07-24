@@ -11,6 +11,7 @@ import { createPortal } from "react-dom";
 import { HiXMark } from "react-icons/hi2";
 import styled from "styled-components";
 import { useOutsideClick } from "../hooks/useOutsideClick";
+import { useKeyPress } from "../hooks/useKeyDown";
 
 const StyledModal = styled.div`
   position: fixed;
@@ -109,7 +110,8 @@ function Window({ name, children }: WindowProps) {
   }
 
   const { openName, close } = context;
-  const ref = useOutsideClick<HTMLDivElement>({ fn: close });
+  const ref = useOutsideClick<HTMLDivElement>(close);
+  useKeyPress("Escape", close);
 
   if (openName !== name) {
     return null;

@@ -1,18 +1,13 @@
 import { RefObject, useEffect, useRef } from "react";
 
-interface useOutsideClickProps {
-  fn: () => void;
-}
-
-export function useOutsideClick<T extends HTMLElement>({
-  fn,
-}: useOutsideClickProps): RefObject<T> {
+export function useOutsideClick<T extends HTMLElement>(
+  handler: () => void
+): RefObject<T> {
   const ref = useRef<T>(null);
   useEffect(() => {
     function handleClick(e: MouseEvent) {
       if (ref.current && !ref.current.contains(e.target as Node)) {
-        fn();
-        console.log();
+        handler();
       }
     }
 
@@ -21,7 +16,7 @@ export function useOutsideClick<T extends HTMLElement>({
     return () => {
       document.removeEventListener("click", handleClick);
     };
-  }, [fn]);
+  }, [handler]);
 
   return ref;
 }
