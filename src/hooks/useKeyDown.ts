@@ -1,16 +1,16 @@
 import { useEffect } from "react";
 
-export function useKeyPress(key: string, handler: () => void): void {
+export function useKeyDown(key: string, handler: () => void): void {
   useEffect(
     function () {
       function handlePress(e: KeyboardEvent) {
         if (e.key === key) {
-          handler?.();
+          handler();
         }
       }
 
       document.addEventListener("keydown", handlePress, true);
-      return () => document.removeEventListener("keydown", handlePress);
+      return () => document.removeEventListener("keydown", handlePress, true);
     },
     [key, handler]
   );

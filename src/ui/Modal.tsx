@@ -11,7 +11,7 @@ import { createPortal } from "react-dom";
 import { HiXMark } from "react-icons/hi2";
 import styled from "styled-components";
 import { useOutsideClick } from "../hooks/useOutsideClick";
-import { useKeyPress } from "../hooks/useKeyDown";
+import { useKeyDown } from "../hooks/useKeyDown";
 
 const StyledModal = styled.div`
   position: fixed;
@@ -73,8 +73,8 @@ interface ModalProps {
 
 function Modal({ children }: ModalProps) {
   const [openName, setOpenName] = useState<string>("");
-  const open = (name: string) => setOpenName(name);
-  const close = () => setOpenName("");
+  const open = (name: string): void => setOpenName(name);
+  const close = (): void => setOpenName("");
 
   return (
     <ModalContext.Provider value={{ openName, open, close }}>
@@ -111,7 +111,7 @@ function Window({ name, children }: WindowProps) {
 
   const { openName, close } = context;
   const ref = useOutsideClick<HTMLDivElement>(close);
-  useKeyPress("Escape", close);
+  useKeyDown("Escape", close);
 
   if (openName !== name) {
     return null;

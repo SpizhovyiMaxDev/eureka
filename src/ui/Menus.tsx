@@ -1,6 +1,20 @@
+import {
+  createContext,
+  Dispatch,
+  MouseEvent,
+  ReactElement,
+  ReactNode,
+  SetStateAction,
+  useContext,
+  useState,
+} from "react";
+import { createPortal } from "react-dom";
+import { HiEllipsisVertical } from "react-icons/hi2";
 import styled from "styled-components";
+import { useKeyDown } from "../hooks/useKeyDown";
+import { useOutsideClick } from "../hooks/useOutsideClick";
 
-const StyledMenu = styled.div`
+const Menu = styled.div`
   display: flex;
   align-items: center;
   justify-content: flex-end;
@@ -25,8 +39,8 @@ const StyledToggle = styled.button`
   }
 `;
 
-const StyledList = styled.ul`
-  position: fixed;
+const StyledList = styled.ul<{ position: Position }>`
+  position: absolute;
 
   background-color: var(--color-grey-0);
   box-shadow: var(--shadow-md);
@@ -60,3 +74,129 @@ const StyledButton = styled.button`
     transition: all 0.3s;
   }
 `;
+
+interface MenusContextProps {
+  openId: number;
+  close: () => void;
+  open: (id: number) => void;
+  position: Position | null;
+  setPosition: Dispatch<SetStateAction<Position | null>>;
+}
+
+const MenusContext = createContext<MenusContextProps | undefined>(undefined);
+
+interface Position {
+  x: number;
+  y: number;
+}
+
+interface MenusProps {
+  children: ReactNode;
+}
+
+function Menus({ children }: MenusProps) {
+  const [openId, setOpenId] = useState<number>(-1);
+  const [position, setPosition] = useState<Position | null>(null);
+  const close = () => setOpenId(-1);
+  const open = setOpenId;
+
+  return (
+    <MenusContext.Provider
+      value={{ openId, close, open, position, setPosition }}
+    >
+      {children}
+    </MenusContext.Provider>
+  );
+}
+
+interface ToggleProps {
+  id: number;
+}
+
+function Toggle({ id }: ToggleProps) {
+  const context = useContext(MenusContext);
+  if (!context) {
+    throw new Error("Menus.Toggle must be used within the <Menus>...</Menus>");
+  }
+
+  const { openId, close, open, setPosition } = context;
+
+  const handleClick = (e: MouseEvent<HTMLButtonElement>): void => {
+    const button = (e.target as HTMLElement)?.closest("button");
+    if (!button) return;
+
+    const rect: DOMRect = button.getBoundingClientRect();
+
+    setPosition({
+      x: window.innerWidth - rect.width - rect.x,
+      y: rect.y + rect.height + 8,
+    });
+
+    openId === id ? close() : open(id);
+  };
+
+  return (
+    <StyledToggle onClick={handleClick}>
+      <HiEllipsisVertical />
+    </StyledToggle>
+  );
+}
+
+interface ListProps {
+  id: number;
+  children: ReactNode;
+}
+
+function List({ id, children }: ListProps) {
+  const context = useContext(MenusContext);
+  if (!context) {
+    throw new Error("Menus.List must be used within the <Menus>...</Menus>");
+  }
+
+  const { openId, position, close } = context;
+  const ref = useOutsideClick<HTMLUListElement>(close);
+  if (id !== openId) return null;
+
+  return createPortal(
+    <StyledList ref={ref} position={position as Position}>
+      {children}
+    </StyledList>,
+    document.body
+  );
+}
+
+interface ButtonProps {
+  children: ReactNode;
+  icon: ReactElement;
+  onClick?: () => void;
+}
+
+function Button({ icon, children, onClick }: ButtonProps) {
+  const context = useContext(MenusContext);
+  if (!context) {
+    throw new Error("Menus.Button must be used within the <Menus>...</Menus>");
+  }
+
+  const { close } = context;
+
+  const handleClick = () => {
+    onClick?.();
+    close();
+  };
+
+  return (
+    <li>
+      <StyledButton onClick={handleClick}>
+        {icon}
+        <span>{children}</span>
+      </StyledButton>
+    </li>
+  );
+}
+
+Menus.Menu = Menu;
+Menus.Toggle = Toggle;
+Menus.List = List;
+Menus.Button = Button;
+
+export default Menus;

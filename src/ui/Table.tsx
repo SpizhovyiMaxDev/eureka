@@ -1,4 +1,5 @@
-import styled from "styled-components";
+import { createContext, ReactNode, useContext } from "react";
+import styled, { css } from "styled-components";
 
 const StyledTable = styled.div`
   border: 1px solid var(--color-grey-200);
@@ -9,7 +10,7 @@ const StyledTable = styled.div`
   overflow: hidden;
 `;
 
-const CommonRow = styled.div`
+const CommonRow = styled.div<{ columns: string }>`
   display: grid;
   grid-template-columns: ${(props) => props.columns};
   column-gap: 2.4rem;
@@ -17,9 +18,12 @@ const CommonRow = styled.div`
   transition: none;
 `;
 
-const StyledHeader = styled(CommonRow)`
+const StyledHeader = styled(CommonRow)<{ role: string; columns: string }>`
   padding: 1.6rem 2.4rem;
 
+  ${({ columns }) => css`
+    grid-template-columns: ${columns};
+  `}
   background-color: var(--color-grey-50);
   border-bottom: 1px solid var(--color-grey-100);
   text-transform: uppercase;
@@ -40,7 +44,7 @@ const StyledBody = styled.section`
   margin: 0.4rem 0;
 `;
 
-const Footer = styled.footer`
+const StyledFooter = styled.footer`
   background-color: var(--color-grey-50);
   display: flex;
   justify-content: center;
@@ -58,3 +62,85 @@ const Empty = styled.p`
   text-align: center;
   margin: 2.4rem;
 `;
+
+interface TableProps {
+  columns: string;
+  children: ReactNode;
+}
+
+interface TableContextTypes {
+  columns: string;
+}
+
+const TableContext = createContext<TableContextTypes | undefined>(undefined);
+
+function Table({ columns, children }: TableProps) {
+  return (
+    <TableContext.Provider value={{ columns }}>
+      <StyledTable role="table">{children}</StyledTable>
+    </TableContext.Provider>
+  );
+}
+
+interface HeaderProps {
+  children: ReactNode;
+}
+
+function Header({ children }: HeaderProps) {
+  const context = useContext(TableContext);
+  if (!context) {
+    throw new Error("Table.Header must be used within the <Table>...</Table>");
+  }
+
+  const { columns } = context;
+
+  return (
+    <StyledHeader role="row" columns={columns} as="header">
+      {children}
+    </StyledHeader>
+  );
+}
+
+interface RowProps {
+  children: ReactNode;
+}
+
+function Row({ children }: RowProps) {
+  const context = useContext(TableContext);
+  if (!context) {
+    throw new Error("Table.Row must be used within the <Table>...</Table>");
+  }
+
+  const { columns } = context;
+
+  return (
+    <StyledRow role="row" columns={columns}>
+      {children}
+    </StyledRow>
+  );
+}
+
+interface BodyProps<T> {
+  data: T[] | undefined;
+  render: (item: T) => ReactNode;
+}
+
+function Body<T>({ data, render }: BodyProps<T>) {
+  if (!data || !data?.length) return <Empty />;
+  return <StyledBody>{data.map(render)}</StyledBody>;
+}
+
+interface FooterProps {
+  children: ReactNode;
+}
+
+function Footer({ children }: FooterProps) {
+  return <StyledFooter>{children}</StyledFooter>;
+}
+
+Table.Header = Header;
+Table.Row = Row;
+Table.Body = Body;
+Table.Footer = Footer;
+
+export default Table;
