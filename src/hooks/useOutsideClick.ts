@@ -10,7 +10,6 @@ export function useOutsideClick<T extends HTMLElement>(
     function () {
       function handleClick(e: MouseEvent) {
         if (ref.current && !ref.current.contains(e.target as Node)) {
-          e.stopPropagation();
           handler();
         }
       }

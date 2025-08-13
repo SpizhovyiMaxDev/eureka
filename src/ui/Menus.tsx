@@ -40,7 +40,7 @@ const StyledToggle = styled.button`
 `;
 
 const StyledList = styled.ul<{ position: Position }>`
-  position: absolute;
+  position: fixed;
 
   background-color: var(--color-grey-0);
   box-shadow: var(--shadow-md);
@@ -122,6 +122,8 @@ function Toggle({ id }: ToggleProps) {
   const { openId, close, open, setPosition } = context;
 
   const handleClick = (e: MouseEvent<HTMLButtonElement>): void => {
+    e.stopPropagation();
+
     const button = (e.target as HTMLElement)?.closest("button");
     if (!button) return;
 
@@ -154,7 +156,7 @@ function List({ id, children }: ListProps) {
   }
 
   const { openId, position, close } = context;
-  const ref = useOutsideClick<HTMLUListElement>(close);
+  const ref = useOutsideClick<HTMLUListElement>(close, false);
   if (id !== openId) return null;
 
   return createPortal(
