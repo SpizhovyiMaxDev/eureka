@@ -62,6 +62,7 @@ function Filter<T extends string>({ filterField, options }: FilterProps<T>) {
           key={value}
           onClick={() => handleClick(value)}
           active={value === currentFilter}
+          disabled={value === currentFilter}
         >
           {label}
         </FilterButton>
