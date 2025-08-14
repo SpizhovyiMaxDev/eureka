@@ -27,7 +27,7 @@ function CabinTable() {
     "no-discount": cabins.filter((cabin) => cabin.discount === 0),
   };
 
-  const sortBy = (searchParams.get("sortBy") ?? "name-descending") as SortKey;
+  const sortBy = (searchParams.get("sortBy") ?? "name-ascending") as SortKey;
   const [field, direction]: string[] = sortBy.split("-");
   const order = direction === "ascending" ? -1 : 1;
 
@@ -37,10 +37,6 @@ function CabinTable() {
 
     if (typeof valueA === "string" && typeof valueB === "string") {
       return valueA.localeCompare(valueB) * order;
-    }
-
-    if (typeof valueA === "number" && typeof valueB === "number") {
-      return (valueA - valueB) * order;
     }
 
     const numA = Number(valueA);
