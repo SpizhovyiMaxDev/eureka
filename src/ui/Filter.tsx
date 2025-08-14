@@ -39,8 +39,6 @@ const FilterButton = styled.button<FilterButtonProps>`
   }
 `;
 
-export type DiscountFilterKey = "all" | "with-discount" | "no-discount";
-
 type FilterOption<T extends string> = { value: T; label: string };
 
 type FilterProps<T extends string> = {
