@@ -9,15 +9,8 @@ import Menus from "../../ui/Menus";
 
 type FilterKey = "all" | "with-discount" | "no-discount";
 
-type SortKey =
-  | "name-descending"
-  | "name-ascending"
-  | "regularPrice-descending"
-  | "regularPrice-ascending"
-  | "maxCapacity-descending"
-  | "maxCapacity-ascending";
-
-type SortHandler = (cabins: Cabin[]) => Cabin[];
+type Direction = "ascending" | "descending";
+type SortKey = `${string}-${Direction}`;
 
 function CabinTable() {
   const { cabins: data, error, isFetching } = useCabins();
@@ -35,24 +28,27 @@ function CabinTable() {
   };
 
   const sortBy = (searchParams.get("sortBy") ?? "name-descending") as SortKey;
-  const sortingHandlers: Record<SortKey, SortHandler> = {
-    "name-descending": (cabins: Cabin[]) =>
-      cabins.sort((a, b) => b.name.localeCompare(a.name)),
-    "name-ascending": (cabins: Cabin[]) =>
-      cabins.sort((a, b) => a.name.localeCompare(b.name)),
-    "regularPrice-descending": (cabins: Cabin[]) =>
-      cabins.sort((a, b) => b.regularPrice - a.regularPrice),
-    "regularPrice-ascending": (cabins: Cabin[]) =>
-      cabins.sort((a, b) => a.regularPrice - b.regularPrice),
-    "maxCapacity-descending": (cabins: Cabin[]) =>
-      cabins.sort((a, b) => b.maxCapacity - a.maxCapacity),
-    "maxCapacity-ascending": (cabins: Cabin[]) =>
-      cabins.sort((a, b) => a.maxCapacity - b.maxCapacity),
-  };
+  const [field, direction]: string[] = sortBy.split("-");
+  const order = direction === "ascending" ? -1 : 1;
 
-  const displayCabins: Cabin[] = sortingHandlers[sortBy]?.(
-    cabinsData[filteredValue]
-  );
+  const sortedCabins: Cabin[] = [...cabinsData[filteredValue]].sort((a, b) => {
+    const valueA = (a as Record<string, unknown>)[field];
+    const valueB = (b as Record<string, unknown>)[field];
+
+    if (typeof valueA === "string" && typeof valueB === "string") {
+      return valueA.localeCompare(valueB) * order;
+    }
+
+    if (typeof valueA === "number" && typeof valueB === "number") {
+      return (valueA - valueB) * order;
+    }
+
+    const numA = Number(valueA);
+    const numB = Number(valueB);
+    return Number.isFinite(numA) && Number.isFinite(numB)
+      ? (numA - numB) * order
+      : 0;
+  });
 
   return (
     <Menus>
@@ -66,7 +62,7 @@ function CabinTable() {
           <div></div>
         </Table.Header>
         <Table.Body<Cabin>
-          data={displayCabins}
+          data={sortedCabins}
           render={(cabin) => <CabinRow cabin={cabin} key={cabin.id} />}
         />
       </Table>
