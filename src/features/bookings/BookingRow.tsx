@@ -4,8 +4,9 @@ import { format, isToday } from "date-fns";
 import Tag from "../../ui/Tag";
 import Table from "../../ui/Table";
 
-import { formatCurrency } from "../../utils/helpers";
-import { formatDistanceFromNow } from "../../utils/helpers";
+import { formatCurrency } from "../../utils/currency";
+import { getTimePassedOrRemaining } from "../../utils/date";
+import { Booking, BookingWithRelations, Status } from "../../types/booking";
 
 const Cabin = styled.div`
   font-size: 1.6rem;
@@ -34,6 +35,12 @@ const Amount = styled.div`
   font-weight: 500;
 `;
 
+type BookingRowTypes = {
+  booking: BookingWithRelations;
+};
+
+type StatusColor = "blue" | "green" | "silver";
+
 function BookingRow({
   booking: {
     id: bookingId,
@@ -44,11 +51,11 @@ function BookingRow({
     numGuests,
     totalPrice,
     status,
-    guests: { fullName: guestName, email },
-    cabins: { name: cabinName },
+    guest: { fullName: guestName, email },
+    cabin: { name: cabinName },
   },
-}) {
-  const statusToTagName = {
+}: BookingRowTypes) {
+  const statusToTagName: Record<Status, StatusColor> = {
     unconfirmed: "blue",
     "checked-in": "green",
     "checked-out": "silver",
@@ -67,7 +74,7 @@ function BookingRow({
         <span>
           {isToday(new Date(startDate))
             ? "Today"
-            : formatDistanceFromNow(startDate)}{" "}
+            : getTimePassedOrRemaining(startDate)}{" "}
           &rarr; {numNights} night stay
         </span>
         <span>

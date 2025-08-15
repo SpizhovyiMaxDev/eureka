@@ -1,9 +1,15 @@
 import BookingRow from "./BookingRow";
 import Table from "../../ui/Table";
 import Menus from "../../ui/Menus";
+import { useBookings } from "./useBookings";
+import { BookingWithRelations } from "../../types/booking";
+import Spinner from "../../ui/Spinner";
 
 function BookingTable() {
-  const bookings = [];
+  const { bookings, error, isFetching } = useBookings();
+  console.log(bookings);
+  if (isFetching) return <Spinner />;
+  if (error) return <p>{error.message}</p>;
 
   return (
     <Menus>
@@ -17,7 +23,7 @@ function BookingTable() {
           <div></div>
         </Table.Header>
 
-        <Table.Body
+        <Table.Body<BookingWithRelations>
           data={bookings}
           render={(booking) => (
             <BookingRow key={booking.id} booking={booking} />
